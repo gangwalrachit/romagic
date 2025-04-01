@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ro-Magic</title>
+    </style>
+    <link rel="stylesheet" href="./static/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      {% if authenticated %}
+      <div class="profile">
+        <img src="{{ user_pfp }}" alt="User Profile" />
+        <h2>
+          Welcome,
+          <a href="{{ user_profile_url }}" target="_blank">{{ user_name }}</a>!
+        </h2>
+      </div>
+
+      {% if current_track and current_track['item'] %}
+      <div class="track">
+        <p>Currently Playing:</p>
+        <p>
+          {{ current_track['item']['name'] }} - {{
+          current_track['item']['artists'][0]['name'] }}
+        </p>
+      </div>
+      <div class="lyrics-container">
+        {{ track_lyrics }}
+      </div>
+      {% else %}
+      <p>No track is currently playing.</p>
+      {% endif %} {% else %}
+      <h2>Welcome to Ro-Magic</h2>
+      <p>Log in with Spotify to see your currently playing track.</p>
+      <a href="/login" class="login-btn">Login with Spotify</a>
+      {% endif %}
+    </div>
+  </body>
+</html>
