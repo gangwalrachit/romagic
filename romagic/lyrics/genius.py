@@ -77,7 +77,10 @@ def scrape_lyrics_from_url(lyrics_url: str) -> Optional[str]:
     :return: Extracted lyrics as a string or None if not found
     """
     try:
-        response = requests.get(lyrics_url)
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+        response = requests.get(lyrics_url, headers=headers)
         response.raise_for_status()
     except requests.RequestException as e:
         print(f"Failed to retrieve Genius lyrics page: {e}")
