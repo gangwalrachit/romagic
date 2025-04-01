@@ -76,10 +76,16 @@ def scrape_lyrics_from_url(lyrics_url: str) -> Optional[str]:
     :param lyrics_url: URL of the Genius lyrics page
     :return: Extracted lyrics as a string or None if not found
     """
+    # TODO: check song and artu=ist name on lyrics page to avoid wrong lyrics (note to compare language)
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Referer": "https://www.google.com/",
+        "DNT": "1",  # Do Not Track request header
+        "Connection": "keep-alive",
+    }
     try:
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        }
         response = requests.get(lyrics_url, headers=headers)
         response.raise_for_status()
     except requests.RequestException as e:
