@@ -6,7 +6,7 @@ from spotipy.exceptions import SpotifyException
 from sqlalchemy.orm import Session
 
 from romagic.database import User, get_db
-from romagic.lyrics.genius import fetch_lyrics
+from romagic.lyrics.musixmatch import fetch_lyrics
 
 
 router = APIRouter()
@@ -60,10 +60,7 @@ async def index(
         # Fetch the user's top 50 tracks and artists
         try:
             current_track = sp.current_user_playing_track()
-            track_lyrics = fetch_lyrics(
-                current_track["item"]["name"],
-                current_track["item"]["artists"][0]["name"],
-            )
+            track_lyrics = fetch_lyrics(current_track["item"]["external_ids"]["isrc"])
 
             return templates.TemplateResponse(
                 "index.html",
