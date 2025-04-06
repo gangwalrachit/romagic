@@ -76,21 +76,29 @@ def scrape_lyrics_from_url(lyrics_url: str) -> Optional[str]:
     :param lyrics_url: URL of the Genius lyrics page
     :return: Extracted lyrics as a string or None if not found
     """
-    # TODO: check song and artu=ist name on lyrics page to avoid wrong lyrics (note to compare language)
+    # TODO: check song and artist name on lyrics page to avoid wrong lyrics (note to compare language)
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/122.0.0.0 Safari/537.36"
+        ),
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Referer": "https://www.google.com/",
-        "DNT": "1",  # Do Not Track request header
+        "Referer": "https://genius.com/",
         "Connection": "keep-alive",
+        "DNT": "1",  # Do Not Track
+        "Upgrade-Insecure-Requests": "1",
+        "Cache-Control": "max-age=0",
     }
-    try:
-        response = requests.get(lyrics_url, headers=headers)
-        response.raise_for_status()
-    except requests.RequestException as e:
-        print(f"Failed to retrieve Genius lyrics page: {e}")
-        return None
+    with requests.Session() as session:
+        session.headers.update(headers)
+        try:
+            response = session.get(lyrics_url, timeout=10)
+            response.raise_for_status()
+        except requests.RequestException as e:
+            print(f"Failed to retrieve Genius lyrics page: {e}")
+            return None
 
     soup = BeautifulSoup(response.text, "html.parser")
     lyrics_divs = soup.find_all("div", {"data-lyrics-container": "true"})
