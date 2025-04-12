@@ -1,41 +1,149 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Romagic</title>
-    </style>
     <link rel="stylesheet" href="./static/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
   </head>
   <body>
     <div class="container">
-      {% if authenticated %}
-      <div class="profile">
-        <img src="{{ user_pfp }}" alt="User Profile" />
-        <h2>
-          Welcome,
-          <a href="{{ user_profile_url }}" target="_blank">{{ user_name }}</a>!
-        </h2>
-      </div>
+      <header>
+        <div class="logo">
+          <h1>Romagic</h1>
+          <span class="tagline">Romanized lyrics for your Asian music</span>
+        </div>
 
-      {% if current_track and current_track['item'] %}
-      <div class="track">
-        <p>Currently Playing:</p>
-        <p>
-          {{ current_track['item']['name'] }} - {{
-          current_track['item']['artists'][0]['name'] }}
-        </p>
-      </div>
-      <div class="lyrics-container">
-        {{ track_lyrics }}
-      </div>
-      {% else %}
-      <p>No track is currently playing.</p>
-      {% endif %} {% else %}
-      <h2>Welcome to Romagic</h2>
-      <p>Log in with Spotify to see your currently playing track.</p>
-      <a href="/login" class="login-btn">Login with Spotify</a>
-      {% endif %}
+        {% if authenticated %}
+        <div class="profile">
+          <div class="profile-trigger">
+            <img src="{{ user_pfp }}" alt="User Profile" />
+            <span>{{ user_name }}</span>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="profile-dropdown">
+            <a href="{{ user_profile_url }}" target="_blank">View Profile</a>
+            <a href="/logout">Logout</a>
+          </div>
+        </div>
+        {% endif %}
+      </header>
+
+      <main>
+        {% if authenticated %} {% if current_track and current_track['item'] %}
+        <div class="now-playing">
+          <div class="track-info">
+            <img
+              src="{{ current_track['item']['album']['images'][0]['url'] }}"
+              alt="Album Art"
+            />
+            <div class="track-details">
+              <h2>{{ current_track['item']['name'] }}</h2>
+              <h3>{{ current_track['item']['artists'][0]['name'] }}</h3>
+            </div>
+          </div>
+        </div>
+
+        <div class="lyrics-section">
+          <div class="tab-buttons">
+            <button data-tab="combined" class="active">Combined</button>
+            <button data-tab="romanized">Romanized</button>
+            <button data-tab="original">Original</button>
+          </div>
+
+          <div class="lyrics-content">
+            <div id="combined-lyrics" class="lyrics-tab active">
+              {% if combined_lyrics %} {% for pair in combined_lyrics %}
+              <div class="lyric-pair">
+                <p class="original">{{ pair[0] }}</p>
+                <p class="romanized">{{ pair[1] }}</p>
+              </div>
+              {% endfor %} {% else %}
+              <p class="no-lyrics">Combined lyrics not available</p>
+              {% endif %}
+            </div>
+
+            <div id="romanized-lyrics" class="lyrics-tab">
+              {% if romanized_lyrics %}
+              <div class="lyrics-container">{{ romanized_lyrics }}</div>
+              {% else %}
+              <p class="no-lyrics">Romanized lyrics not available</p>
+              {% endif %}
+            </div>
+
+            <div id="original-lyrics" class="lyrics-tab">
+              {% if original_lyrics %}
+              <div class="lyrics-container">{{ original_lyrics }}</div>
+              {% else %}
+              <p class="no-lyrics">Original lyrics not available</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% else %}
+        <div class="message">
+          <p>
+            No track is currently playing. Start a song on Spotify and refresh.
+          </p>
+        </div>
+        {% endif %} {% else %}
+        <div class="welcome">
+          <h2>Welcome to Romagic</h2>
+          <p>
+            Understand Japanese and Korean songs with real-time romanized lyrics
+          </p>
+          <a href="/login" class="login-btn">
+            <i class="fab fa-spotify"></i>
+            Login with Spotify
+          </a>
+        </div>
+        {% endif %}
+      </main>
     </div>
+
+    <script>
+      // Profile dropdown
+      document.addEventListener("DOMContentLoaded", function () {
+        const profileTrigger = document.querySelector(".profile-trigger");
+        if (profileTrigger) {
+          profileTrigger.addEventListener("click", function () {
+            document
+              .querySelector(".profile-dropdown")
+              .classList.toggle("active");
+          });
+        }
+
+        // Close dropdown when clicking elsewhere
+        document.addEventListener("click", function (event) {
+          const profile = document.querySelector(".profile");
+          if (profile && !profile.contains(event.target)) {
+            document
+              .querySelector(".profile-dropdown")
+              .classList.remove("active");
+          }
+        });
+
+        // Tab switching
+        const tabButtons = document.querySelectorAll(".tab-buttons button");
+        tabButtons.forEach((button) => {
+          button.addEventListener("click", function () {
+            // Update active state on buttons
+            tabButtons.forEach((btn) => btn.classList.remove("active"));
+            this.classList.add("active");
+
+            // Show selected tab content
+            const tabId = this.getAttribute("data-tab");
+            document.querySelectorAll(".lyrics-tab").forEach((tab) => {
+              tab.classList.remove("active");
+            });
+            document.getElementById(`${tabId}-lyrics`).classList.add("active");
+          });
+        });
+      });
+    </script>
   </body>
 </html>
