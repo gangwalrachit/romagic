@@ -1,7 +1,9 @@
-from enum import Enum
 import pykakasi
+
+from enum import Enum
 from hangul_romanize import Transliter
 from hangul_romanize.rule import academic
+from typing import List, Dict, Tuple, Union, Optional
 
 
 class Lang(Enum):
@@ -18,45 +20,68 @@ class Lang(Enum):
     KO = "ko"
 
 
-def romanize(text: str, lang: Lang) -> str:
+class Romanizer:
     """
-    Romanize lyrics based on the language provided.
-
-    :param text: Original lyrics text
-    :param lang: Language enum of the lyrics
-    :return: Romanized or original text based on the language
+    Romanizes lyrics based on language.
     """
-    if lang == Lang.JA.value:
-        return romanize_japanese(text)
-    elif lang == Lang.KO.value:
-        return romanize_korean(text)
-    return text  # fallback for unsupported or English
 
+    def __init__(self, text: str, lang: Lang) -> None:
+        """
+        Initialize the Romanizer with text and language.
 
-def romanize_japanese(text: str) -> str:
-    """
-    Romanize Japanese text using Hepburn system with word spacing.
+        :param text: Original lyrics
+        :param lang: Language enum
+        """
+        self.text = text
+        self.lang = lang
+        self.romanize_fn = None
 
-    :param text: Japanese lyrics
-    :return: Romanized lyrics
-    """
-    kakasi = pykakasi.kakasi()
-    kakasi.setMode("H", "a")  # Hiragana to ascii
-    kakasi.setMode("K", "a")  # Katakana to ascii
-    kakasi.setMode("J", "a")  # Japanese to ascii
-    kakasi.setMode("r", "Hepburn")  # Use Hepburn Romanization
-    kakasi.setMode("s", True)  # Add spaces between words
+        if lang == Lang.JA:
+            self._init_japanese()
+        elif lang == Lang.KO:
+            self._init_korean()
 
-    converter = kakasi.getConverter()
-    return converter.do(text)
+    def _init_japanese(self) -> None:
+        """
+        Set up romanizer for Japanese using pykakasi.
+        """
+        kakasi = pykakasi.kakasi()
+        kakasi.setMode("H", "a")
+        kakasi.setMode("K", "a")
+        kakasi.setMode("J", "a")
+        kakasi.setMode("r", "Hepburn")
+        kakasi.setMode("s", True)
+        kakasi.setMode("C", True)
+        self.romanize_fn = kakasi.getConverter().do
 
+    def _init_korean(self) -> None:
+        """
+        Set up romanizer for Korean using hangul_romanize.
+        """
+        self.romanize_fn = Transliter(rule=academic).translit
 
-def romanize_korean(text: str) -> str:
-    """
-    Romanize Korean text using academic transliteration rules.
+    def run(self) -> Dict[str, Union[str, bool, Optional[List[Tuple[str, str]]]]]:
+        """
+        Run romanization and return results.
 
-    :param text: Korean lyrics
-    :return: Romanized lyrics
-    """
-    transliter = Transliter(rule=academic)
-    return transliter.translit(text)
+        :return: Dictionary with flags and versions of lyrics:
+            - is_romanized: whether romanization was applied
+            - original: original lyrics
+            - romanized: romanized full text (or None)
+            - combined: list of (original, romanized) line tuples if romanized
+        """
+        if not self.romanize_fn:
+            return {
+                "is_romanized": False,
+                "original": self.text,
+                "romanized": None,
+                "combined": None,
+            }
+
+        lines = [line.strip() for line in self.text.splitlines() if line.strip()]
+        return {
+            "is_romanized": True,
+            "original": self.text,
+            "romanized": self.romanize_fn(self.text),
+            "combined": [(line, self.romanize_fn(line)) for line in lines],
+        }

@@ -23,8 +23,3 @@ sp_oauth = SpotifyOAuth(
     scope=SPOTIFY_SCOPE,
     cache_path=None,  # Disable cache
 )
-
-# Genius API Credentials
-GENIUS_CLIENT_ID = config("GENIUS_CLIENT_ID")
-GENIUS_CLIENT_SECRET = config("GENIUS_CLIENT_SECRET")
-GENIUS_ACCESS_TOKEN = config("GENIUS_ACCESS_TOKEN")
